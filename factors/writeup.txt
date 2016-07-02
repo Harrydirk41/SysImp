@@ -1,0 +1,25 @@
+DESCRIPTION
+
+For the count_factors_recursive function, I used a helper function 
+next_factor. The helper function keeps track of the prime factor, which
+is important for this recursive algorithm. It keeps adding one if the 
+number is divisible by the factor.
+For the loop functions, the while loop keeps dividing input and keeps
+track of divisible factors. It only takes an extra flag to mark the 
+distinct prime factors.
+
+TESTING STRATEGY
+
+First I hardcoded some easy cases for simple testing, to see if the 
+algorithm actually works; Next, I test the functions from two directions:
+one by vertically same factors, one by horizontally distinct factors.
+The tested numbers are all within the range of UINT_MAX. The first for loop 
+tests numbers from 2 ~ 2^25, with factors of only 2, which is an extreme 
+case; the second for loop checks all prime numbers within certain range, which is 
+another extreme case. Next test  uses the prime factor array 2,3,5,...,23 I created,
+and tests the combinations of multiplication of these factors: 2*3, 2*3*5,
+..., 2*3*...*23. Then I blend these two methods together, and tested numbers 
+with both distinct and same factors:
+2*2*2, 2*2*2*3*3*3,... These multiple dimension checks are sufficient to 
+prove the correctness of the code. Also the corner case is tested.
+

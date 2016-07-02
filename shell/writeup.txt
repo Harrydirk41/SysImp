@@ -1,0 +1,70 @@
+DESCRIPTION
+
+This is a simple, rudimentary shell implementation, which performs some basic 
+input commands. It contains four builtin commands: bg, fg, jobs and quit. Jobs 
+could list all running/stopped processes in background, and bg fg could bring 
+process to background/foreground. The default search path is contained in PATH 
+environment variable.
+
+DESIGN
+
+The design process follows these steps: initpath check, builtin_cmd check, 
+eval writing, do_bgfg writing and signal handlers writing. Since we are using
+execvp to execute builtin commands and user programs, the initpath is a simple
+verification of PATH env variable. PATH could either be empty or NULL, and they
+have same effects. We change NULL to empty string just for safety. 
+
+Builtin command is also a simple module that compares user input with four
+tiny shell built in commands, and accordingly performs action. The eval 
+function first deal with corner case where input is null; then it checks if 
+the input argument is a builtin command. It executes if yes, and for non 
+builtin commands, it would first block SIGCHLD signals before the parent forks
+ child processes to prevent racing conditions, where child process is reaped 
+before parent adds it into job list. After parent forks the child, it calls 
+setpgid() to ensure tiny shell to be the only process in foreground job, and 
+now ctrl-c or ctrl-z or any other signal would caught by tiny shell first, 
+not to all processes created by shell at the same time. It then calls execvp 
+to execute the command input, which searches the directory automatically. If 
+it cannot execute successfully, the command is invalid. Next it checks whether
+ the job is foreground. If yes, then add job with appropriate state flag, 
+unblock SIGCHLD and call waitfg to wait it till finish. Otherwise simply add 
+job to the list.
+
+The waitfg() function use a true while loop to check if the job with given pid
+ is still in foreground, or still exists; it exits when job is gone or not 
+foreground anymore. 
+
+The do_bgfg() function performs some parsing, and will print out different 
+error msg based on different type of invalid inputs. It also takes jid or pid 
+based on '%' character, and parse the rest. It then sends SIGCONT signal to 
+the pid group. The only difference between bg and fg job is that, they have 
+different state flags, and foreground job call waitfg() when it's running.
+
+The two sigint and sigtstp handlers only catch SIGINT and SIGTSTP and send 
+them to the whole process group of same group pid. When the process catch the 
+signal it would terminate/stop based on signal type, and accordingly send out a
+SIGCHLD signal, which is then caught by sigchld handler. It uses waitpid() with
+WNOHANG | WUNTRACED, which does not wait for process termination. The 
+status of child process is then examined; if status terminated normally, just 
+remove the job; if is terminated due to signal, prints out msg and delete job; 
+if it is stopped, prints out msg and change state flag.
+
+The modules described above are then combined and made to work.
+
+TESTING STRATEGY
+
+We read all trace files and thought about every corner cases we could think of,
+and wrote a trace13.txt file. This file include all combinations of built-in 
+commands, invalid inputs, multiple processes and signals to test every 
+situation. We believe these commands fully tested the necessary functionality 
+of tiny shell implementation, thus sufficient to test our code. To run, just 
+type in ./sdriver.pl -t trace13.txt -s ./tsh -a "-p"
+in the terminal, and compare the result with that of ./tshref.
+
+The test commands include:
+Builtin jobs command;
+Multiple background processes;
+Forward SIGINT/SIGTSTP to every foreground job;
+Bring jobs back and forth to the ground;
+Send SIGINT/SIGTSTP to itself.
+

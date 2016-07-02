@@ -1,0 +1,67 @@
+#
+# trace13.txt - Combo testing 
+#
+/bin/echo tsh> ./myspin 4 \046
+./myspin 4 &
+/bin/echo tsh> ./myspin 5 \046
+./myspin 5 &
+
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> ./mystop 5 \046
+./mystop 5 &
+/bin/echo tsh> ./mystop 3
+./mystop 3
+
+SLEEP 2
+TSTP
+
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> ./myint 5 \046
+./myint 5 &
+/bin/echo tsh> ./mysplit 3 \046
+./mysplit 3 &
+
+SLEEP 2
+INT
+
+/bin/echo tsh> jobs
+jobs
+
+SLEEP 2
+
+/bin/echo tsh> ./mysplit 5
+./mysplit 5
+
+SLEEP 1
+TSTP
+
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> bg %1
+bg %5
+
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> fg %1
+fg %5
+/bin/echo tsh> jobs
+jobs
+
+/bin/echo tsh> bg %6
+bg %6
+
+/bin/echo tsh> bg %4
+bg %4
+
+/bin/echo tsh> fg  %3
+fg %3
+
+/bin/echo tsh> jobs
+jobs
+

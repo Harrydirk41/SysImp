@@ -1,0 +1,45 @@
+READJCF
+
+    DESCRIPTION
+
+    The program takes input from a user given input java class file, 
+    and prints out the dependencies, exports accordingly. It prints the
+    constants by reading and parsing jcf constant pool, and all data are
+    stored in jcf_cp_info structure.
+
+    DESIGN
+
+    The program makes great use of fread and malloc functions. Based on
+    the provided skeleton, jcf file is read by the order of provided 
+    functions. The header and version info is read and verified; the file
+    pointer then gets to the jcf constant_pool_count, and decide how many
+    interations to perform in order to store all constant info. The pool
+    structure is allocated count space, since the first index does not 
+    store anything; the loop counter starts from 1. Since the pool.pool is 
+    an array of pointers to structures, they are malloc'd accordingly by 
+    the structure by the tags read. They are casted later to the specific
+    types of structures and used by fread to read data from file.
+    
+    We used probing technique, which reads the tag and set the file 
+    pointer back to position. The tag read could lead to switch case. Then we
+    use fread to read the whole structure, saving time to read bytes by 
+    bytes. We used general types of structures such as 1u2, 2u2, 1u4, thus
+    no worries for too detailed specifications. The long and double are
+    stored as two 1u4 structs, one for high bytes and another for low bytes.
+    A little bit modification for utf8, since the length of the utf8 struct
+    depends on the length o utf8 bytes array. We have to read bytes one by
+    one this time, and set up the structure with read length and data.
+
+    After we get a complete constant pool, dependencies could be printed.
+    Basically there are only three types of dependencies, field, method and 
+    interface references. Those dependencies are printed by print_jcf. The 
+    printing function is an instance of recursion, where indices all point
+    back to utf8 constants. The utf8 string is appended by '\0' and then 
+    printed. After everything has been read, printed and verified, the 
+    constant pool struct array will be freed. Each of the pointers in the 
+    array are pointed, and then the array pointer itself is freed.
+
+    TESTING STRATEGY
+
+    <insert a detailed description of your testing strategy>
+
